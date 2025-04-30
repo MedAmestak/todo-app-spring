@@ -12,26 +12,27 @@ import java.util.Map;
 @RequestMapping("/api/todos")
 @CrossOrigin(origins = "*")
 public class TodoController {
+
     @Autowired
     private TodoRepository todoRepository;
 
-    @GetMapping
+    @GetMapping//Get all todos       
     public List<Todo> getAllTodos() {
         return todoRepository.findAll();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}")//Get todo by id
     public Todo getByIdTodos(@PathVariable String id){ 
         return todoRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Todo not found"));
     }
 
-    @PostMapping
+    @PostMapping//Create todo
     public Todo createTodo(@RequestBody Todo todo) {
         return todoRepository.save(todo);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}")//Update todo
     public Todo updateTodo(@PathVariable String id, @RequestBody Todo updatedTodo) {
         if (todoRepository.existsById(id)) {
             updatedTodo.setId(id);
@@ -40,17 +41,17 @@ public class TodoController {
         return null;
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}")//Delete todo
     public void deleteTodo(@PathVariable String id) {
         todoRepository.deleteById(id);
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search")//Search todo
     public List<Todo> searchTodos(@RequestParam String query) {
         return todoRepository.findByTitleContainingIgnoreCase(query);
     }
 
-    @GetMapping("/filter")
+    @GetMapping("/filter")//Filter todo
     public List<Todo> filterTodos(
         @RequestParam(required = false) Boolean completed,
         @RequestParam(required = false) Todo.Priority priority
@@ -58,7 +59,7 @@ public class TodoController {
         return todoRepository.findByCompletedAndPriority(completed, priority);
     }
 
-    @PutMapping("/batch/complete")
+    @PutMapping("/batch/complete")//Complete multiple todos
     public void completeMultiple(@RequestBody List<String> ids) {
         todoRepository.findAllById(ids).forEach(todo -> {
             todo.setCompleted(true);
@@ -66,7 +67,7 @@ public class TodoController {
         });
     }
 
-    @GetMapping("/stats")
+    @GetMapping("/stats")//Get statistics   
     public Map<String, Object> getStatistics() {
         List<Todo> todos = todoRepository.findAll();
         return Map.of(
