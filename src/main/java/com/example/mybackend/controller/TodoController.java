@@ -4,7 +4,6 @@ import com.example.mybackend.model.Todo;
 import com.example.mybackend.repository.TodoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Map;
 
@@ -13,10 +12,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class TodoController {
 
-    @Autowired
-    private TodoRepository todoRepository;
+    private final TodoRepository todoRepository;
 
-    @GetMapping//Get all todos       
+    @Autowired
+    public TodoController(TodoRepository todoRepository) {
+        this.todoRepository = todoRepository;
+    }
+
+    @GetMapping//Get all todos
     public List<Todo> getAllTodos() {
         return todoRepository.findAll();
     }
@@ -50,7 +53,6 @@ public class TodoController {
     public List<Todo> searchTodos(@RequestParam String query) {
         return todoRepository.findByTitleContainingIgnoreCase(query);
     }
-
     @GetMapping("/filter")//Filter todo
     public List<Todo> filterTodos(
         @RequestParam(required = false) Boolean completed,
@@ -64,6 +66,7 @@ public class TodoController {
         todoRepository.findAllById(ids).forEach(todo -> {
             todo.setCompleted(true);
             todoRepository.save(todo);
+            
         });
     }
 

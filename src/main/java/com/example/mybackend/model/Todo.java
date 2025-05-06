@@ -40,7 +40,6 @@ public class Todo {
     
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) { this.completed = completed; }
-
     public Priority getPriority() {
         return priority;
     }
