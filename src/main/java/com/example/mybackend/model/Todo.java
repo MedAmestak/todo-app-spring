@@ -12,7 +12,7 @@ public class Todo {
     private String id;        // UUID string
     private String title;     // Text Content
     private boolean completed;  // Status(done or not)
-    private Priority priority; // Add this field
+    private Priority priority; 
     private LocalDateTime dueDate;
     private LocalDateTime createdAt;
 
