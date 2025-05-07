@@ -1,6 +1,8 @@
 package com.example.mybackend.repository;
 
 import com.example.mybackend.model.Todo;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import java.util.List;
@@ -11,5 +13,5 @@ public interface TodoRepository extends JpaRepository<Todo, String> {
     @Query("SELECT t FROM Todo t WHERE " +
            "(:completed IS NULL OR t.completed = :completed) AND " +
            "(:priority IS NULL OR t.priority = :priority)")
-    List<Todo> findByCompletedAndPriority(Boolean completed, Todo.Priority priority);
+    Page<Todo> findByCompletedAndPriority(Boolean completed, Todo.Priority priority, Pageable pageable);
 } 

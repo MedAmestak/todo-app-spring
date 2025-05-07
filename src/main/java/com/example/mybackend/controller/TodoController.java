@@ -1,9 +1,15 @@
 package com.example.mybackend.controller;
 
+import com.example.mybackend.dto.TodoRequest;
+import com.example.mybackend.dto.TodoResponse;
 import com.example.mybackend.model.Todo;
-import com.example.mybackend.repository.TodoRepository;
+import com.example.mybackend.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
@@ -12,71 +18,60 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class TodoController {
 
-    private final TodoRepository todoRepository;
+    private final TodoService todoService;
 
     @Autowired
-    public TodoController(TodoRepository todoRepository) {
-        this.todoRepository = todoRepository;
+    public TodoController(TodoService todoService) {
+        this.todoService = todoService;
     }
 
-    @GetMapping//Get all todos
-    public List<Todo> getAllTodos() {
-        return todoRepository.findAll();
-    }
-
-    @GetMapping("/{id}")//Get todo by id
-    public Todo getByIdTodos(@PathVariable String id){ 
-        return todoRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Todo not found"));
-    }
-
-    @PostMapping//Create todo
-    public Todo createTodo(@RequestBody Todo todo) {
-        return todoRepository.save(todo);
-    }
-
-    @PutMapping("/{id}")//Update todo
-    public Todo updateTodo(@PathVariable String id, @RequestBody Todo updatedTodo) {
-        if (todoRepository.existsById(id)) {
-            updatedTodo.setId(id);
-            return todoRepository.save(updatedTodo);
-        }
-        return null;
-    }
-
-    @DeleteMapping("/{id}")//Delete todo
-    public void deleteTodo(@PathVariable String id) {
-        todoRepository.deleteById(id);
-    }
-
-    @GetMapping("/search")//Search todo
-    public List<Todo> searchTodos(@RequestParam String query) {
-        return todoRepository.findByTitleContainingIgnoreCase(query);
-    }
-    @GetMapping("/filter")//Filter todo
-    public List<Todo> filterTodos(
+    @GetMapping
+    public Page<TodoResponse> getTodos(
         @RequestParam(required = false) Boolean completed,
-        @RequestParam(required = false) Todo.Priority priority
+        @RequestParam(required = false) String priority,
+        Pageable pageable
     ) {
-        return todoRepository.findByCompletedAndPriority(completed, priority);
+        return todoService.getTodos(completed, priority != null ? Todo.Priority.valueOf(priority.toUpperCase()) : null, pageable);
     }
 
-    @PutMapping("/batch/complete")//Complete multiple todos
+    @GetMapping("/{id}")
+    public ResponseEntity<TodoResponse> getByIdTodos(@PathVariable String id) {
+        return todoService.getTodoById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public TodoResponse createTodo(@Valid @RequestBody TodoRequest request) {
+        return todoService.createTodo(request);
+    }
+
+    @PutMapping("/{id}")
+    public TodoResponse updateTodo(@PathVariable String id, @Valid @RequestBody TodoRequest request) {
+        return todoService.updateTodo(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteTodo(@PathVariable String id) {
+        todoService.deleteTodo(id);
+    }
+
+    @GetMapping("/search")
+    public List<TodoResponse> searchTodos(@RequestParam String query) {
+        return todoService.searchTodos(query);
+    }
+
+    @PutMapping("/batch/complete")
     public void completeMultiple(@RequestBody List<String> ids) {
-        todoRepository.findAllById(ids).forEach(todo -> {
-            todo.setCompleted(true);
-            todoRepository.save(todo);
-            
-        });
+        todoService.completeMultiple(ids);
     }
 
-    @GetMapping("/stats")//Get statistics   
+    @GetMapping("/stats")
     public Map<String, Object> getStatistics() {
-        List<Todo> todos = todoRepository.findAll();
         return Map.of(
-            "total", todos.size(),
-            "completed", todos.stream().filter(Todo::isCompleted).count(),
-            "pending", todos.stream().filter(t -> !t.isCompleted()).count()
+            "total", todoService.countTotal(),
+            "completed", todoService.countCompleted(),
+            "pending", todoService.countPending()
         );
     }
-} 
+}
