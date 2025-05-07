@@ -13,6 +13,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST controller for managing Todo operations.
+ */
 @RestController
 @RequestMapping("/api/todos")
 @CrossOrigin(origins = "*")
@@ -25,53 +28,82 @@ public class TodoController {
         this.todoService = todoService;
     }
 
+    /**
+     * GET /api/todos : Get all todos with optional filters
+     */
     @GetMapping
-    public Page<TodoResponse> getTodos(
+    public ResponseEntity<Page<TodoResponse>> getTodos(
         @RequestParam(required = false) Boolean completed,
         @RequestParam(required = false) String priority,
         Pageable pageable
     ) {
-        return todoService.getTodos(completed, priority != null ? Todo.Priority.valueOf(priority.toUpperCase()) : null, pageable);
+        return ResponseEntity.ok(todoService.getTodos(
+            completed, 
+            priority != null ? Todo.Priority.valueOf(priority.toUpperCase()) : null, 
+            pageable
+        ));
     }
 
+    /**
+     * GET /api/todos/{id} : Get a todo by id
+     */
     @GetMapping("/{id}")
-    public ResponseEntity<TodoResponse> getByIdTodos(@PathVariable String id) {
+    public ResponseEntity<TodoResponse> getTodoById(@PathVariable String id) {
         return todoService.getTodoById(id)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * POST /api/todos : Create a new todo
+     */
     @PostMapping
-    public TodoResponse createTodo(@Valid @RequestBody TodoRequest request) {
-        return todoService.createTodo(request);
+    public ResponseEntity<TodoResponse> createTodo(@Valid @RequestBody TodoRequest request) {
+        return ResponseEntity.ok(todoService.createTodo(request));
     }
 
+    /**
+     * PUT /api/todos/{id} : Update an existing todo
+     */
     @PutMapping("/{id}")
-    public TodoResponse updateTodo(@PathVariable String id, @Valid @RequestBody TodoRequest request) {
-        return todoService.updateTodo(id, request);
+    public ResponseEntity<TodoResponse> updateTodo(
+        @PathVariable String id, 
+        @Valid @RequestBody TodoRequest request
+    ) {
+        return ResponseEntity.ok(todoService.updateTodo(id, request));
     }
 
+    /**
+     * DELETE /api/todos/{id} : Delete a todo
+     */
     @DeleteMapping("/{id}")
-    public void deleteTodo(@PathVariable String id) {
+    public ResponseEntity<Void> deleteTodo(@PathVariable String id) {
         todoService.deleteTodo(id);
+        return ResponseEntity.noContent().build();
     }
 
+    /**
+     * GET /api/todos/search : Search todos by title
+     */
     @GetMapping("/search")
-    public List<TodoResponse> searchTodos(@RequestParam String query) {
-        return todoService.searchTodos(query);
+    public ResponseEntity<List<TodoResponse>> searchTodos(@RequestParam String query) {
+        return ResponseEntity.ok(todoService.searchTodos(query));
     }
 
+    /**
+     * PUT /api/todos/batch/complete : Mark multiple todos as completed
+     */
     @PutMapping("/batch/complete")
-    public void completeMultiple(@RequestBody List<String> ids) {
+    public ResponseEntity<Void> completeMultiple(@RequestBody List<String> ids) {
         todoService.completeMultiple(ids);
+        return ResponseEntity.noContent().build();
     }
 
+    /**
+     * GET /api/todos/stats : Get todo statistics
+     */
     @GetMapping("/stats")
-    public Map<String, Object> getStatistics() {
-        return Map.of(
-            "total", todoService.countTotal(),
-            "completed", todoService.countCompleted(),
-            "pending", todoService.countPending()
-        );
+    public ResponseEntity<Map<String, Long>> getStatistics() {
+        return ResponseEntity.ok(todoService.getStatistics());
     }
 }

@@ -5,8 +5,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 
+@Repository
 public interface TodoRepository extends JpaRepository<Todo, String> {
     List<Todo> findByTitleContainingIgnoreCase(String query);
     
@@ -14,4 +16,6 @@ public interface TodoRepository extends JpaRepository<Todo, String> {
            "(:completed IS NULL OR t.completed = :completed) AND " +
            "(:priority IS NULL OR t.priority = :priority)")
     Page<Todo> findByCompletedAndPriority(Boolean completed, Todo.Priority priority, Pageable pageable);
+
+    long countByCompleted(boolean completed);
 } 

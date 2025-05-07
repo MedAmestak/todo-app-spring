@@ -2,35 +2,50 @@ package com.example.mybackend.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import java.util.UUID;
 import java.time.LocalDateTime;
 
+/**
+ * Entity representing a Todo item in the system.
+ */
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Todo {
-    // Properties
     @Id
-    private String id;        // UUID string
-    private String title;     // Text Content
-    private boolean completed;  // Status(done or not)
-    private Priority priority; 
+    private String id;
+
+    @NotBlank(message = "Title is required")
+    private String title;
+
+    @NotNull
+    private boolean completed;
+
+    @NotNull(message = "Priority is required")
+    private Priority priority;
+
     private LocalDateTime dueDate;
+
+    @NotNull
     private LocalDateTime createdAt;
 
     public enum Priority {
-        low, medium, high
-    }
-
-    public Todo() {
-        this.id = UUID.randomUUID().toString();  
-        this.createdAt = LocalDateTime.now();
+        LOW, MEDIUM, HIGH
     }
 
     public Todo(String title, boolean completed) {
         this.id = UUID.randomUUID().toString();
         this.title = title;
         this.completed = completed;
+        this.createdAt = LocalDateTime.now();
+        this.priority = Priority.MEDIUM;
     }
-
 
     public String getId() { return id; } 
     public void setId(String id) { this.id = id; }
